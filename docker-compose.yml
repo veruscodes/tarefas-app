@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: tarefas_app
+    restart: unless-stopped
+    ports:
+      - "9000:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/tarefas.conf:/etc/nginx/conf.d/default.conf
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_HOST=mysql
+      - DB_DATABASE=tarefas
+      - DB_USERNAME=root
+      - DB_PASSWORD=password
+    depends_on:
+      - mysql
+    networks:
+      - tarefas_network
+
+  mysql:
+    image: mysql:8.0
+    container_name: tarefas_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: tarefas
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - tarefas_network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: tarefas_pma
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: password
+    depends_on:
+      - mysql
+    networks:
+      - tarefas_network
+
+volumes:
+  mysql_data:
+
+networks:
+  tarefas_network:
